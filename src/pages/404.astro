@@ -1,0 +1,38 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { TOOLS } from '../lib/site';
+---
+
+<BaseLayout
+  title="Page Not Found"
+  description="That page doesn't exist on ManifestKit. Browse the free SKILL.md, llms.txt, AGENTS.md, MCP manifest, and Cursor/Windsurf rules generators instead."
+  path="/404/"
+>
+  <section class="not-found">
+    <h1>Page not found</h1>
+    <p>That page doesn't exist — it may have moved, or the link was mistyped. Here's what's here:</p>
+    <ul>
+      {
+        TOOLS.map((tool) => (
+          <li>
+            <a href={`/tools/${tool.slug}/`}>{tool.title}</a> — {tool.blurb}
+          </li>
+        ))
+      }
+    </ul>
+    <p><a href="/">← Back to the hub</a></p>
+  </section>
+</BaseLayout>
+
+<style>
+  .not-found {
+    max-width: 60ch;
+  }
+  .not-found ul {
+    padding-left: 1.2rem;
+    margin: 1.25rem 0;
+  }
+  .not-found li {
+    margin-bottom: 0.5rem;
+  }
+</style>
