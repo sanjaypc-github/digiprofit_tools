@@ -37,6 +37,17 @@ const organizationJsonLd = {
 
     <script type="application/ld+json" set:html={JSON.stringify(organizationJsonLd)} is:inline />
 
+    <!-- Google tag (gtag.js) -->
+    <script async is:inline src={`https://www.googletagmanager.com/gtag/js?id=${SITE.gaMeasurementId}`}></script>
+    <script is:inline define:vars={{ gaId: SITE.gaMeasurementId }}>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag('js', new Date());
+      gtag('config', gaId);
+    </script>
+
     <style>
       :root {
         color-scheme: light dark;

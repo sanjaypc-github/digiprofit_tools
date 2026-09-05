@@ -4,6 +4,7 @@ export const SITE = {
   origin: 'https://digiprofit.online',
   tagline: 'Free generators for the config files AI agents read.',
   author: 'The ManifestKit Team',
+  gaMeasurementId: 'G-D6WBZ1F705',
 } as const;
 
 export interface ToolMeta {
