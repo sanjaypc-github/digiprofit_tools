@@ -1,0 +1,111 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Faq, { type FaqItem } from '../components/Faq.astro';
+import { SITE, TOOLS } from '../lib/site';
+
+interface Props {
+  title: string;
+  definition: string;
+  metaDescription: string;
+  slug: string;
+  faqItems: FaqItem[];
+  relatedSlugs: string[];
+  lastUpdated: string;
+}
+
+const { title, definition, metaDescription, slug, faqItems, relatedSlugs, lastUpdated } =
+  Astro.props;
+
+const path = `/tools/${slug}/`;
+const relatedTools = TOOLS.filter((tool) => relatedSlugs.includes(tool.slug));
+
+const softwareAppJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: title,
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Any (runs in your browser)',
+  url: new URL(path, SITE.origin).toString(),
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+  },
+  description: metaDescription,
+};
+---
+
+<BaseLayout title={title} description={metaDescription} path={path}>
+  <script type="application/ld+json" set:html={JSON.stringify(softwareAppJsonLd)} is:inline />
+
+  <article>
+    <h1>{title}</h1>
+    <p class="definition">{definition}</p>
+
+    <div class="tool-slot">
+      <slot />
+    </div>
+
+    <section class="why">
+      <slot name="why" />
+    </section>
+
+    <section class="example">
+      <slot name="example" />
+    </section>
+
+    <Faq items={faqItems} />
+
+    {
+      relatedTools.length > 0 && (
+        <section class="related">
+          <h2>Related tools</h2>
+          <ul>
+            {relatedTools.map((tool) => (
+              <li>
+                <a href={`/tools/${tool.slug}/`}>{tool.title}</a> — {tool.blurb}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <p class="byline">Last updated {lastUpdated} · by {SITE.author}</p>
+  </article>
+</BaseLayout>
+
+<style>
+  h1 {
+    margin-bottom: 0.5rem;
+  }
+  .definition {
+    font-size: 1.08rem;
+    color: var(--muted);
+    max-width: 60ch;
+  }
+  .tool-slot {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--card-bg);
+  }
+  .why :global(h2),
+  .example :global(h2),
+  .related h2 {
+    font-size: 1.2rem;
+    margin-top: 2rem;
+  }
+  .related ul {
+    padding-left: 1.2rem;
+  }
+  .related li {
+    margin-bottom: 0.4rem;
+  }
+  .byline {
+    margin-top: 2.5rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+</style>

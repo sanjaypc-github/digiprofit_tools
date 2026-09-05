@@ -1,0 +1,283 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+
+const faqItems = [
+  {
+    question: 'What is AGENTS.md?',
+    answer:
+      'AGENTS.md (agents.md) is an open, framework-agnostic convention for a plain-markdown file at your repo root that tells coding agents — Codex, Claude Code, Cursor, and others — how to work in your project: setup commands, code style, testing, and PR instructions.',
+  },
+  {
+    question: 'How is it different from a normal README?',
+    answer:
+      'A README is written for humans skimming for context. AGENTS.md is written as direct operating instructions for an agent: exact commands to run, not prose explaining the project.',
+  },
+  {
+    question: 'What sections should I include?',
+    answer:
+      'The most useful ones are Setup commands, Code style, Testing instructions, and PR instructions — but any section that changes how an agent should behave in your repo is worth adding.',
+  },
+  {
+    question: 'Can I have more than one AGENTS.md?',
+    answer:
+      'Yes — nested AGENTS.md files in subdirectories are supported by several agents and override the root file for that subtree, useful in monorepos.',
+  },
+];
+---
+
+<ToolLayout
+  title="AGENTS.md Generator"
+  definition="AGENTS.md is a plain-markdown file at your repo root — an open convention read by Codex, Claude Code, Cursor, and other coding agents — with direct operating instructions: setup commands, code style, testing, and PR conventions. This tool builds one from a form, section by section, free and entirely in your browser."
+  metaDescription="Generate an AGENTS.md file with setup commands, code style, and testing instructions sections — the open convention coding agents read. Free, no signup, runs in your browser."
+  slug="agentsmd-generator"
+  faqItems={faqItems}
+  relatedSlugs={['skillmd-generator', 'rules-file-generator', 'llms-txt-generator']}
+  lastUpdated="2026-09-05"
+>
+  <form id="agents-form" novalidate>
+    <div class="field">
+      <label for="agents-project-name">Project name</label>
+      <input id="agents-project-name" type="text" value="ManifestKit" />
+    </div>
+    <div class="field">
+      <label for="agents-overview">Overview (optional)</label>
+      <textarea id="agents-overview" rows="2" placeholder="One or two sentences about what this repo is.">A static Astro site of free generators for AI-agent config files.</textarea>
+    </div>
+
+    <div id="agents-sections"></div>
+    <button type="button" id="agents-add-section">+ Add section</button>
+
+    <template id="agents-section-template">
+      <fieldset class="section">
+        <div class="section-head">
+          <input class="section-heading" type="text" placeholder="Setup commands" />
+          <button type="button" class="remove-section">Remove</button>
+        </div>
+        <textarea class="section-content" rows="3" placeholder="- `npm install`&#10;- `npm run dev`"></textarea>
+      </fieldset>
+    </template>
+
+    <ul id="agents-issues" class="issues" aria-live="polite"></ul>
+
+    <div class="actions">
+      <button type="button" id="agents-copy">Copy</button>
+      <button type="button" id="agents-download">Download AGENTS.md</button>
+    </div>
+
+    <pre id="agents-output"><code></code></pre>
+  </form>
+
+  <script>
+    import { generateAgentsMd, validateAgentsMdInput } from '../../lib/generators/agentsmd';
+
+    const projectNameEl = document.getElementById('agents-project-name') as HTMLInputElement;
+    const overviewEl = document.getElementById('agents-overview') as HTMLTextAreaElement;
+    const sectionsEl = document.getElementById('agents-sections') as HTMLDivElement;
+    const addSectionBtn = document.getElementById('agents-add-section') as HTMLButtonElement;
+    const sectionTpl = document.getElementById('agents-section-template') as HTMLTemplateElement;
+    const issuesEl = document.getElementById('agents-issues') as HTMLUListElement;
+    const outputEl = document.getElementById('agents-output') as HTMLPreElement;
+    const outputCode = outputEl.querySelector('code') as HTMLElement;
+    const copyBtn = document.getElementById('agents-copy') as HTMLButtonElement;
+    const downloadBtn = document.getElementById('agents-download') as HTMLButtonElement;
+
+    function addSection(heading?: string, content?: string) {
+      const node = sectionTpl.content.cloneNode(true) as DocumentFragment;
+      const fieldset = node.querySelector('.section') as HTMLElement;
+      if (heading) (fieldset.querySelector('.section-heading') as HTMLInputElement).value = heading;
+      if (content) (fieldset.querySelector('.section-content') as HTMLTextAreaElement).value = content;
+      fieldset.querySelector('.remove-section')!.addEventListener('click', () => {
+        fieldset.remove();
+        render();
+      });
+      sectionsEl.appendChild(fieldset);
+    }
+
+    addSection('Setup commands', '- `npm install`\n- `npm run dev`');
+    addSection('Testing instructions', 'Run `npm test` before committing. All tests must pass.');
+
+    function currentInput() {
+      const sections = Array.from(sectionsEl.querySelectorAll('.section')).map((section) => ({
+        heading: (section.querySelector('.section-heading') as HTMLInputElement).value,
+        content: (section.querySelector('.section-content') as HTMLTextAreaElement).value,
+      }));
+      return {
+        projectName: projectNameEl.value,
+        overview: overviewEl.value || undefined,
+        sections,
+      };
+    }
+
+    function render() {
+      const input = currentInput();
+      const issues = validateAgentsMdInput(input);
+      issuesEl.innerHTML = '';
+      for (const issue of issues) {
+        const li = document.createElement('li');
+        li.className = `issue issue-${issue.level}`;
+        li.textContent = `${issue.level === 'error' ? 'Error' : 'Warning'} (${issue.field}): ${issue.message}`;
+        issuesEl.appendChild(li);
+      }
+      const hasErrors = issues.some((i) => i.level === 'error');
+      outputCode.textContent = generateAgentsMd(input);
+      downloadBtn.disabled = hasErrors;
+    }
+
+    function download() {
+      const output = generateAgentsMd(currentInput());
+      const blob = new Blob([output], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'AGENTS.md';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function copy() {
+      await navigator.clipboard.writeText(generateAgentsMd(currentInput()));
+      const original = copyBtn.textContent;
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => (copyBtn.textContent = original), 1500);
+    }
+
+    addSectionBtn.addEventListener('click', () => {
+      addSection();
+      render();
+    });
+    document.getElementById('agents-form')!.addEventListener('input', render);
+    downloadBtn.addEventListener('click', download);
+    copyBtn.addEventListener('click', copy);
+    render();
+  </script>
+
+  <div slot="why">
+    <h2>Why structure matters for agent instructions</h2>
+    <p>
+      Coding agents read AGENTS.md top-to-bottom as literal operating instructions, not narrative
+      context — a wall of unstructured prose gets skimmed the same way a human would skim it.
+      Clear H2 sections per concern (setup, style, testing) make each instruction easy for the agent
+      to find and apply exactly when it's relevant.
+    </p>
+  </div>
+
+  <div slot="example">
+    <h2>Worked example</h2>
+    <p>Two sections — Setup commands and Testing instructions — render as:</p>
+    <pre><code># ManifestKit
+
+A static Astro site of free generators for AI-agent config files.
+
+## Setup commands
+
+- `npm install`
+- `npm run dev`
+
+## Testing instructions
+
+Run `npm test` before committing. All tests must pass.</code></pre>
+  </div>
+</ToolLayout>
+
+<style>
+  .field {
+    margin-bottom: 1rem;
+  }
+  label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+  }
+  input,
+  textarea {
+    width: 100%;
+    font-family: inherit;
+    font-size: 0.95rem;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--fg);
+  }
+  textarea {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    resize: vertical;
+  }
+  fieldset.section {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.9rem;
+    margin: 0 0 1rem;
+  }
+  .section-head {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+  }
+  .section-head .section-heading {
+    flex: 1;
+    font-weight: 600;
+  }
+  #agents-add-section {
+    margin-bottom: 1.2rem;
+  }
+  .issues {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0;
+  }
+  .issue {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    margin-bottom: 0.35rem;
+  }
+  .issue-error {
+    background: #ffe4e4;
+    color: #7a1717;
+  }
+  .issue-warning {
+    background: #fff4d6;
+    color: #6b5100;
+  }
+  @media (prefers-color-scheme: dark) {
+    .issue-error {
+      background: #3a1414;
+      color: #ff9d9d;
+    }
+    .issue-warning {
+      background: #3a2f0a;
+      color: #ffd875;
+    }
+  }
+  .actions {
+    display: flex;
+    gap: 0.6rem;
+    margin: 1rem 0;
+  }
+  button {
+    font: inherit;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--accent);
+    color: var(--accent-fg);
+    cursor: pointer;
+  }
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  #agents-copy,
+  #agents-add-section,
+  .remove-section {
+    background: transparent;
+    color: var(--fg);
+  }
+  pre#agents-output {
+    max-height: 320px;
+  }
+</style>

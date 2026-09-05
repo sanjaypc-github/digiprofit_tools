@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../lib/site';
+---
+
+<BaseLayout
+  title="Contact"
+  description="Get in touch with ManifestKit — bug reports, tool requests, or general questions."
+  path="/contact/"
+>
+  <article>
+    <h1>Contact</h1>
+    <p>
+      Found a bug, have a tool you'd like added, or a question about how something on this site
+      works? Email <a href={`mailto:hello@${SITE.domain}`}>hello@{SITE.domain}</a>.
+    </p>
+    <p class="note">
+      <!-- TODO: replace with the address you actually want to receive mail at, or set up a
+               hello@ mailbox for this domain (the Hostinger email MCP can do this) before launch. -->
+      This is a placeholder mailbox — set it up (or swap in a different address) before launch.
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  article {
+    max-width: 68ch;
+  }
+  .note {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+</style>

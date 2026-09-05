@@ -1,0 +1,244 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+
+const faqItems = [
+  {
+    question: 'What is a SKILL.md file?',
+    answer:
+      'SKILL.md is the file format Claude Skills use to package reusable instructions. It has a YAML frontmatter block with a name and description, followed by markdown instructions Claude follows when the skill triggers.',
+  },
+  {
+    question: 'How does Claude decide when to use a skill?',
+    answer:
+      'Claude matches the user’s request against the description field in the frontmatter, so the description needs to say both what the skill does and when it applies — not just a short label.',
+  },
+  {
+    question: 'Does the name field have rules?',
+    answer:
+      'Yes — it should be kebab-case (lowercase letters, digits, and hyphens only) since it is used as an identifier. This tool validates that for you before you download.',
+  },
+  {
+    question: 'Is my data uploaded anywhere?',
+    answer:
+      'No. This generator runs entirely in your browser with plain JavaScript — nothing you type is sent to a server.',
+  },
+];
+---
+
+<ToolLayout
+  title="SKILL.md Generator & Validator"
+  definition="A SKILL.md file packages reusable instructions for Claude Skills: a YAML frontmatter block (name, description, optional license) followed by markdown instructions. This free tool builds a correctly formatted SKILL.md from a form and validates the frontmatter before you download it — no signup, runs entirely in your browser."
+  metaDescription="Generate and validate a Claude Skill's SKILL.md file — proper YAML frontmatter, kebab-case name checking, and a description that actually triggers the skill. Free, no signup, runs in your browser."
+  slug="skillmd-generator"
+  faqItems={faqItems}
+  relatedSlugs={['agentsmd-generator', 'mcp-manifest-generator', 'llms-txt-generator']}
+  lastUpdated="2026-09-05"
+>
+  <form id="skill-form" novalidate>
+    <div class="field">
+      <label for="skill-name">Name (kebab-case)</label>
+      <input id="skill-name" name="name" type="text" placeholder="pdf-form-filler" value="pdf-form-filler" />
+    </div>
+    <div class="field">
+      <label for="skill-description">Description (what it does + when to use it)</label>
+      <textarea
+        id="skill-description"
+        name="description"
+        rows="2"
+        placeholder="Fills PDF forms from structured field data. Use when the user has a PDF form and a set of values to enter into it."
+      >Fills PDF forms from structured field data and returns the completed file. Use when the user has a PDF form and a set of values to enter into it.</textarea>
+    </div>
+    <div class="field">
+      <label for="skill-license">License (optional)</label>
+      <input id="skill-license" name="license" type="text" placeholder="MIT" />
+    </div>
+    <div class="field">
+      <label for="skill-body">Instructions body (markdown)</label>
+      <textarea id="skill-body" name="body" rows="8" placeholder="## Instructions
+
+1. ...">## Instructions
+
+1. Read the target PDF's form fields.
+2. Map each field name to a value from the input data.
+3. Fill the form and save a new copy — never overwrite the original.</textarea>
+    </div>
+
+    <ul id="skill-issues" class="issues" aria-live="polite"></ul>
+
+    <div class="actions">
+      <button type="button" id="skill-copy">Copy</button>
+      <button type="button" id="skill-download">Download SKILL.md</button>
+    </div>
+
+    <pre id="skill-output"><code></code></pre>
+  </form>
+
+  <script>
+    import { generateSkillMd, validateSkillInput } from '../../lib/generators/skillmd';
+
+    const form = document.getElementById('skill-form') as HTMLFormElement;
+    const nameEl = document.getElementById('skill-name') as HTMLInputElement;
+    const descEl = document.getElementById('skill-description') as HTMLTextAreaElement;
+    const licenseEl = document.getElementById('skill-license') as HTMLInputElement;
+    const bodyEl = document.getElementById('skill-body') as HTMLTextAreaElement;
+    const issuesEl = document.getElementById('skill-issues') as HTMLUListElement;
+    const outputEl = document.getElementById('skill-output') as HTMLPreElement;
+    const outputCode = outputEl.querySelector('code') as HTMLElement;
+    const copyBtn = document.getElementById('skill-copy') as HTMLButtonElement;
+    const downloadBtn = document.getElementById('skill-download') as HTMLButtonElement;
+
+    function currentInput() {
+      return {
+        name: nameEl.value,
+        description: descEl.value,
+        license: licenseEl.value || undefined,
+        body: bodyEl.value,
+      };
+    }
+
+    function render() {
+      const input = currentInput();
+      const issues = validateSkillInput(input);
+      issuesEl.innerHTML = '';
+      for (const issue of issues) {
+        const li = document.createElement('li');
+        li.className = `issue issue-${issue.level}`;
+        li.textContent = `${issue.level === 'error' ? 'Error' : 'Warning'} (${issue.field}): ${issue.message}`;
+        issuesEl.appendChild(li);
+      }
+
+      const hasErrors = issues.some((i) => i.level === 'error');
+      const output = generateSkillMd(input);
+      outputCode.textContent = output;
+      downloadBtn.disabled = hasErrors;
+    }
+
+    function download() {
+      const output = generateSkillMd(currentInput());
+      const blob = new Blob([output], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'SKILL.md';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function copy() {
+      const output = generateSkillMd(currentInput());
+      await navigator.clipboard.writeText(output);
+      const original = copyBtn.textContent;
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => {
+        copyBtn.textContent = original;
+      }, 1500);
+    }
+
+    form.addEventListener('input', render);
+    downloadBtn.addEventListener('click', download);
+    copyBtn.addEventListener('click', copy);
+    render();
+  </script>
+
+  <div slot="why">
+    <h2>Why validate a SKILL.md instead of hand-writing it</h2>
+    <p>
+      The frontmatter is YAML, and YAML breaks silently on things people write without thinking
+      twice — a colon inside a description, an unescaped quote, a name with a space in it. Claude
+      also relies entirely on the <code>description</code> field to decide when to trigger the
+      skill, so a description that's too short or too vague means the skill just never fires. This
+      tool catches both classes of mistake before you save the file.
+    </p>
+  </div>
+
+  <div slot="example">
+    <h2>Worked example</h2>
+    <p>Fill in a name of <code>pdf-form-filler</code> and a description with an embedded colon and quotes:</p>
+    <pre><code>Handles "edge cases" like colons: and quotes.</code></pre>
+    <p>The generator automatically quotes and escapes it in the output:</p>
+    <pre><code>description: "Handles \"edge cases\" like colons: and quotes."</code></pre>
+  </div>
+</ToolLayout>
+
+<style>
+  .field {
+    margin-bottom: 1rem;
+  }
+  label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+  }
+  input,
+  textarea {
+    width: 100%;
+    font-family: inherit;
+    font-size: 0.95rem;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--fg);
+  }
+  textarea {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    resize: vertical;
+  }
+  .issues {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0;
+  }
+  .issue {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    margin-bottom: 0.35rem;
+  }
+  .issue-error {
+    background: #ffe4e4;
+    color: #7a1717;
+  }
+  .issue-warning {
+    background: #fff4d6;
+    color: #6b5100;
+  }
+  @media (prefers-color-scheme: dark) {
+    .issue-error {
+      background: #3a1414;
+      color: #ff9d9d;
+    }
+    .issue-warning {
+      background: #3a2f0a;
+      color: #ffd875;
+    }
+  }
+  .actions {
+    display: flex;
+    gap: 0.6rem;
+    margin: 1rem 0;
+  }
+  button {
+    font: inherit;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--accent);
+    color: var(--accent-fg);
+    cursor: pointer;
+  }
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  #skill-copy {
+    background: transparent;
+    color: var(--fg);
+  }
+  pre#skill-output {
+    max-height: 320px;
+  }
+</style>

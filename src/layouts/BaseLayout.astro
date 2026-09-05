@@ -1,0 +1,194 @@
+---
+import { GUIDES, SITE, TOOLS } from '../lib/site';
+
+interface Props {
+  title: string;
+  description: string;
+  path: string;
+}
+
+const { title, description, path } = Astro.props;
+const canonicalUrl = new URL(path, SITE.origin).toString();
+const currentYear = new Date().getFullYear();
+
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: SITE.name,
+  url: SITE.origin,
+  description: SITE.tagline,
+};
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · {SITE.name}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta name="twitter:card" content="summary" />
+
+    <script type="application/ld+json" set:html={JSON.stringify(organizationJsonLd)} is:inline />
+
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #ffffff;
+        --fg: #14181f;
+        --muted: #5b6472;
+        --border: #e2e6ec;
+        --accent: #2f5fff;
+        --accent-fg: #ffffff;
+        --card-bg: #f6f8fb;
+        --code-bg: #eef1f6;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+          sans-serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0e1116;
+          --fg: #e8ebf0;
+          --muted: #9aa4b2;
+          --border: #262c36;
+          --accent: #6d8fff;
+          --accent-fg: #0e1116;
+          --card-bg: #161b22;
+          --code-bg: #1b2129;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        line-height: 1.6;
+      }
+      a {
+        color: var(--accent);
+      }
+      .wrap {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 0 1.25rem;
+      }
+      header.site {
+        border-bottom: 1px solid var(--border);
+      }
+      header.site .wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        flex-wrap: wrap;
+      }
+      .brand {
+        font-weight: 700;
+        font-size: 1.1rem;
+        text-decoration: none;
+        color: var(--fg);
+      }
+      nav.site-nav {
+        display: flex;
+        gap: 1.1rem;
+        flex-wrap: wrap;
+        font-size: 0.92rem;
+      }
+      nav.site-nav a {
+        text-decoration: none;
+        color: var(--muted);
+      }
+      nav.site-nav a:hover {
+        color: var(--fg);
+      }
+      main {
+        padding: 2.5rem 0 3rem;
+      }
+      footer.site {
+        border-top: 1px solid var(--border);
+        margin-top: 2rem;
+      }
+      footer.site .wrap {
+        padding: 1.75rem 1.25rem 2.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      .footer-links {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        font-size: 0.88rem;
+      }
+      .footer-links a {
+        color: var(--muted);
+        text-decoration: none;
+      }
+      .footer-links a:hover {
+        color: var(--fg);
+      }
+      .footer-note {
+        font-size: 0.82rem;
+        color: var(--muted);
+      }
+      pre,
+      code {
+        background: var(--code-bg);
+        border-radius: 6px;
+      }
+      code {
+        padding: 0.15em 0.4em;
+        font-size: 0.9em;
+      }
+      pre {
+        padding: 1rem;
+        overflow-x: auto;
+      }
+      pre code {
+        background: none;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site">
+      <div class="wrap">
+        <a class="brand" href="/">{SITE.name}</a>
+        <nav class="site-nav">
+          <a href="/">Home</a>
+          {TOOLS.map((tool) => <a href={`/tools/${tool.slug}/`}>{tool.shortTitle}</a>)}
+          {GUIDES.map((guide) => <a href={`/guides/${guide.slug}/`}>Guide</a>)}
+        </nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <slot />
+    </main>
+
+    <footer class="site">
+      <div class="wrap">
+        <div class="footer-links">
+          <a href="/about/">About</a>
+          <a href="/contact/">Contact</a>
+          <a href="/privacy/">Privacy</a>
+          <a href="/llms.txt">llms.txt</a>
+        </div>
+        <p class="footer-note">
+          © {currentYear} {SITE.name}. Tools run entirely in your browser — nothing you type is
+          uploaded anywhere.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

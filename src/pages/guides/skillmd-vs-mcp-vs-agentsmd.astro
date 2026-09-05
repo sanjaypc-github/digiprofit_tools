@@ -1,0 +1,182 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Faq from '../../components/Faq.astro';
+import { SITE, TOOLS } from '../../lib/site';
+
+const path = '/guides/skillmd-vs-mcp-vs-agentsmd/';
+
+const faqItems = [
+  {
+    question: 'Do I need all three — SKILL.md, an MCP manifest, and AGENTS.md?',
+    answer:
+      "No. Most projects need at most one or two: AGENTS.md if you want any coding agent to work well in your repo, SKILL.md only if you're packaging reusable instructions specifically for Claude Skills, and an MCP manifest only if you're actually connecting to (or building) an MCP server.",
+  },
+  {
+    question: 'Can a project use more than one at the same time?',
+    answer:
+      "Yes, and it's common — a repo might have an AGENTS.md for how any agent should work in it, while also connecting to several MCP servers listed in its editor's mcpServers config, with no conflict between them.",
+  },
+  {
+    question: 'Which one should I build first?',
+    answer:
+      'If you just want any AI coding agent to be less confused in your repo, start with AGENTS.md — it has the broadest support and the lowest setup cost. Add a SKILL.md or MCP manifest only once you have a concrete reusable capability to package.',
+  },
+];
+
+const articleJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: 'SKILL.md vs MCP Manifest vs AGENTS.md',
+  author: { '@type': 'Organization', name: SITE.author },
+  datePublished: '2026-09-05',
+  dateModified: '2026-09-05',
+};
+---
+
+<BaseLayout
+  title="SKILL.md vs MCP Manifest vs AGENTS.md"
+  description="A clear comparison of the three config files AI agent tooling relies on: Claude's SKILL.md, an MCP server manifest, and the AGENTS.md convention — what each is for and when to use which."
+  path={path}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd)} is:inline />
+
+  <article>
+    <h1>SKILL.md vs MCP Manifest vs AGENTS.md</h1>
+    <p class="definition">
+      These three files solve different problems that all get lumped together as "AI agent
+      config": <strong>SKILL.md</strong> packages a reusable instruction set that Claude loads on
+      demand, an <strong>MCP server manifest</strong> tells a client how to launch a tool-providing
+      server, and <strong>AGENTS.md</strong> is a general-purpose operating manual any coding agent
+      reads at the start of a session. None of them replace the others.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>SKILL.md</th>
+          <th>MCP manifest</th>
+          <th>AGENTS.md</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>What it is</td>
+          <td>A packaged, on-demand instruction set for Claude</td>
+          <td>Launch config for an MCP server (command, args, env)</td>
+          <td>A repo-wide operating manual for any coding agent</td>
+        </tr>
+        <tr>
+          <td>Format</td>
+          <td>Markdown + YAML frontmatter</td>
+          <td>JSON</td>
+          <td>Plain markdown</td>
+        </tr>
+        <tr>
+          <td>Triggered by</td>
+          <td>Matching the <code>description</code> field to the request</td>
+          <td>The client launching the server at startup</td>
+          <td>Being read once at the start of an agent session</td>
+        </tr>
+        <tr>
+          <td>Lives where</td>
+          <td>Inside a skill package/folder</td>
+          <td>The client's own config file (merged in)</td>
+          <td>Repo root (and optionally subdirectories)</td>
+        </tr>
+        <tr>
+          <td>Grants new tools?</td>
+          <td>No — instructions only</td>
+          <td>Yes — the server exposes new tools</td>
+          <td>No — instructions only</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>SKILL.md</h2>
+    <p>
+      A SKILL.md packages a specific, reusable capability — "fill this PDF form," "write commits
+      this way" — as instructions Claude loads only when the request matches. It grants no new
+      tools; it's pure instruction-following, scoped narrowly by its <code>description</code>.
+      Build one when you have a repeatable task worth capturing once and triggering by name.
+    </p>
+
+    <h2>MCP server manifest</h2>
+    <p>
+      An MCP manifest is infrastructure, not instructions — it's the JSON a client reads to start
+      a server process and connect to it. Unlike the other two, it actually changes what an agent
+      can <em>do</em>, by exposing that server's tools. Build one (or just fill it in from a
+      server's docs) when you're connecting a real tool-providing server, not when you want to
+      change how an agent behaves.
+    </p>
+
+    <h2>AGENTS.md</h2>
+    <p>
+      AGENTS.md is the broadest of the three: a plain-markdown file any coding agent reads at the
+      start of a session, covering setup commands, code style, and testing conventions for the
+      whole repo. It's the closest thing to a universal standard across agents, and the easiest to
+      add value with first.
+    </p>
+
+    <Faq items={faqItems} />
+
+    <section class="related">
+      <h2>Build one now</h2>
+      <ul>
+        {
+          TOOLS.map((tool) => (
+            <li>
+              <a href={`/tools/${tool.slug}/`}>{tool.title}</a> — {tool.blurb}
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <p class="byline">Last updated 2026-09-05 · by {SITE.author}</p>
+  </article>
+</BaseLayout>
+
+<style>
+  h1 {
+    margin-bottom: 0.5rem;
+  }
+  .definition {
+    font-size: 1.08rem;
+    color: var(--muted);
+    max-width: 68ch;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2rem 0;
+    font-size: 0.9rem;
+  }
+  th,
+  td {
+    border: 1px solid var(--border);
+    padding: 0.6rem 0.7rem;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: var(--card-bg);
+  }
+  h2 {
+    margin-top: 2rem;
+  }
+  .related {
+    margin-top: 2.5rem;
+  }
+  .related ul {
+    padding-left: 1.2rem;
+  }
+  .related li {
+    margin-bottom: 0.4rem;
+  }
+  .byline {
+    margin-top: 2.5rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+</style>

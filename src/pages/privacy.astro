@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../lib/site';
+---
+
+<BaseLayout
+  title="Privacy Policy"
+  description="ManifestKit's privacy policy: what data is collected, what analytics or ads are used, and what happens to the text you type into a tool."
+  path="/privacy/"
+>
+  <article>
+    <h1>Privacy Policy</h1>
+    <p class="byline">Last updated 2026-09-05</p>
+
+    <h2>The short version</h2>
+    <p>
+      Every generator on {SITE.name} runs entirely in your browser. Whatever you type into a
+      form — a skill description, an MCP server name, rule content — is processed locally with
+      plain JavaScript and never sent to a server. Closing the tab discards it; nothing is stored
+      unless you click download.
+    </p>
+
+    <h2>What this site does collect</h2>
+    <p>
+      Standard web server logs (IP address, user agent, requested URL) are recorded automatically
+      by the hosting provider for security and reliability, the same as almost any website. If
+      this site displays advertising (via Google AdSense) or analytics in the future, that
+      provider may set cookies and collect data under its own privacy policy — this page will be
+      updated to link to it before that happens.
+    </p>
+
+    <h2>Cookies</h2>
+    <p>
+      This site does not set any cookies of its own. Your browser's local storage may be used
+      purely to remember your own preferences on a page (nothing account-related); that data
+      never leaves your browser.
+    </p>
+
+    <h2>Contact</h2>
+    <p>
+      Questions about this policy: see the <a href="/contact/">contact page</a>.
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  article {
+    max-width: 68ch;
+  }
+  h2 {
+    margin-top: 1.75rem;
+  }
+  .byline {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+</style>

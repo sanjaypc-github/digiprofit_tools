@@ -1,0 +1,87 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { GUIDES, SITE, TOOLS } from '../lib/site';
+---
+
+<BaseLayout
+  title="Free Tools for AI Agent Config Files"
+  description="Free, no-signup generators for SKILL.md, llms.txt, AGENTS.md, MCP server manifests, and Cursor/Windsurf rules files. Runs entirely in your browser."
+  path="/"
+>
+  <section class="hero">
+    <h1>Free tools for the files your AI agents read</h1>
+    <p>
+      {SITE.tagline} No signup, no server round-trip — fill a form, get a properly formatted file,
+      download it. Built for people building Claude Skills, MCP servers, and Cursor/Windsurf
+      configs.
+    </p>
+  </section>
+
+  <section class="grid">
+    {
+      TOOLS.map((tool) => (
+        <a class="card" href={`/tools/${tool.slug}/`}>
+          <h2>{tool.title}</h2>
+          <p>{tool.blurb}</p>
+        </a>
+      ))
+    }
+  </section>
+
+  <section class="guides">
+    <h2>Guides</h2>
+    <ul>
+      {GUIDES.map((guide) => (
+        <li>
+          <a href={`/guides/${guide.slug}/`}>{guide.title}</a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    max-width: 60ch;
+    margin-bottom: 2.5rem;
+  }
+  .hero h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.75rem;
+  }
+  .hero p {
+    color: var(--muted);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+  .card {
+    display: block;
+    padding: 1.1rem 1.2rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--card-bg);
+    text-decoration: none;
+    color: var(--fg);
+  }
+  .card:hover {
+    border-color: var(--accent);
+  }
+  .card h2 {
+    font-size: 1.02rem;
+    margin: 0 0 0.4rem;
+  }
+  .card p {
+    font-size: 0.88rem;
+    color: var(--muted);
+    margin: 0;
+  }
+  .guides {
+    margin-top: 2.5rem;
+  }
+  .guides ul {
+    padding-left: 1.2rem;
+  }
+</style>

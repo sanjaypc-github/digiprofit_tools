@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../lib/site';
+---
+
+<BaseLayout
+  title="About"
+  description="What ManifestKit is, who builds it, and why every tool runs entirely in your browser with no signup."
+  path="/about/"
+>
+  <article>
+    <h1>About {SITE.name}</h1>
+    <p>
+      {SITE.name} is a small set of free, no-signup generators for the config files AI-agent
+      developers write over and over: SKILL.md, llms.txt, AGENTS.md, MCP server manifests, and
+      Cursor/Windsurf rules files. Fill a form, get a correctly formatted file, download it — that's
+      the whole product.
+    </p>
+    <h2>Why it exists</h2>
+    <p>
+      These formats are simple in principle and easy to get subtly wrong in practice — a stray
+      colon breaking YAML frontmatter, a missing field that silently stops a skill from
+      triggering, JSON nested one level off. Each tool here validates the input before you
+      download, so the file works the first time.
+    </p>
+    <h2>How it works</h2>
+    <p>
+      Every generator runs entirely client-side, in plain JavaScript, with no server round-trip.
+      Nothing you type is uploaded, logged, or stored anywhere. You can verify this yourself — the
+      source is a static site with no backend.
+    </p>
+    <h2>Who built it</h2>
+    <p>
+      {SITE.name} is maintained by {SITE.author}. Questions, bug reports, or a tool you'd like to
+      see? See the <a href="/contact/">contact page</a>.
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  article {
+    max-width: 68ch;
+  }
+  h2 {
+    margin-top: 1.75rem;
+  }
+</style>

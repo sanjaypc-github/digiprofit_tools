@@ -1,0 +1,312 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+
+const faqItems = [
+  {
+    question: 'What is this JSON used for?',
+    answer:
+      'It is the mcpServers config entry that MCP clients — Claude Desktop, Claude Code, Cursor, Windsurf — read to know how to launch an MCP server: which command to run, what arguments to pass, and what environment variables it needs.',
+  },
+  {
+    question: 'Where do I paste the generated JSON?',
+    answer:
+      'Merge it into your client\'s MCP config file (e.g. claude_desktop_config.json or your project\'s .mcp.json) under the top-level "mcpServers" key — most clients already have that key if you\'ve added a server before.',
+  },
+  {
+    question: 'Should real API keys go in the env values?',
+    answer:
+      'Only in your local config file, which should never be committed. This tool runs entirely client-side and never sends what you type anywhere — but treat the downloaded file the same way you\'d treat any file with secrets in it.',
+  },
+  {
+    question: 'What if my server needs no arguments or env vars?',
+    answer:
+      'Leave those sections empty — the generator omits an empty "args" list gracefully and drops the "env" key entirely rather than emitting an empty object.',
+  },
+];
+---
+
+<ToolLayout
+  title="MCP Server Manifest Generator"
+  definition="MCP clients like Claude Desktop, Claude Code, Cursor, and Windsurf all read the same mcpServers JSON shape to know how to launch a server — command, arguments, and environment variables. This tool builds a correctly formatted, ready-to-paste config entry from a form, free and entirely in your browser."
+  metaDescription="Generate a ready-to-paste MCP server config entry (mcpServers JSON) — command, args, and env vars, validated before download. Free, no signup, runs in your browser."
+  slug="mcp-manifest-generator"
+  faqItems={faqItems}
+  relatedSlugs={['skillmd-generator', 'agentsmd-generator', 'rules-file-generator']}
+  lastUpdated="2026-09-05"
+>
+  <form id="mcp-form" novalidate>
+    <div class="field">
+      <label for="mcp-server-name">Server name (JSON key)</label>
+      <input id="mcp-server-name" type="text" value="weather" />
+    </div>
+    <div class="field">
+      <label for="mcp-command">Command</label>
+      <input id="mcp-command" type="text" value="npx" />
+    </div>
+
+    <div class="field">
+      <label>Arguments</label>
+      <div id="mcp-args"></div>
+      <button type="button" id="mcp-add-arg">+ Add argument</button>
+    </div>
+
+    <div class="field">
+      <label>Environment variables (optional)</label>
+      <div id="mcp-env"></div>
+      <button type="button" id="mcp-add-env">+ Add env var</button>
+    </div>
+
+    <template id="arg-row-template">
+      <div class="row">
+        <input class="arg-value" type="text" placeholder="-y" />
+        <button type="button" class="remove-row" aria-label="Remove">✕</button>
+      </div>
+    </template>
+
+    <template id="env-row-template">
+      <div class="row env-row">
+        <input class="env-key" type="text" placeholder="API_KEY" />
+        <input class="env-value" type="text" placeholder="value" />
+        <button type="button" class="remove-row" aria-label="Remove">✕</button>
+      </div>
+    </template>
+
+    <ul id="mcp-issues" class="issues" aria-live="polite"></ul>
+
+    <div class="actions">
+      <button type="button" id="mcp-copy">Copy</button>
+      <button type="button" id="mcp-download">Download mcp-config.json</button>
+    </div>
+
+    <pre id="mcp-output"><code></code></pre>
+  </form>
+
+  <script>
+    import { generateMcpManifest, validateMcpManifestInput } from '../../lib/generators/mcpManifest';
+
+    const serverNameEl = document.getElementById('mcp-server-name') as HTMLInputElement;
+    const commandEl = document.getElementById('mcp-command') as HTMLInputElement;
+    const argsEl = document.getElementById('mcp-args') as HTMLDivElement;
+    const envEl = document.getElementById('mcp-env') as HTMLDivElement;
+    const addArgBtn = document.getElementById('mcp-add-arg') as HTMLButtonElement;
+    const addEnvBtn = document.getElementById('mcp-add-env') as HTMLButtonElement;
+    const argTpl = document.getElementById('arg-row-template') as HTMLTemplateElement;
+    const envTpl = document.getElementById('env-row-template') as HTMLTemplateElement;
+    const issuesEl = document.getElementById('mcp-issues') as HTMLUListElement;
+    const outputEl = document.getElementById('mcp-output') as HTMLPreElement;
+    const outputCode = outputEl.querySelector('code') as HTMLElement;
+    const copyBtn = document.getElementById('mcp-copy') as HTMLButtonElement;
+    const downloadBtn = document.getElementById('mcp-download') as HTMLButtonElement;
+
+    function addArg(value?: string) {
+      const node = argTpl.content.cloneNode(true) as DocumentFragment;
+      const row = node.querySelector('.row') as HTMLElement;
+      if (value !== undefined) (row.querySelector('.arg-value') as HTMLInputElement).value = value;
+      row.querySelector('.remove-row')!.addEventListener('click', () => {
+        row.remove();
+        render();
+      });
+      argsEl.appendChild(row);
+    }
+
+    function addEnv(key?: string, value?: string) {
+      const node = envTpl.content.cloneNode(true) as DocumentFragment;
+      const row = node.querySelector('.row') as HTMLElement;
+      if (key !== undefined) (row.querySelector('.env-key') as HTMLInputElement).value = key;
+      if (value !== undefined) (row.querySelector('.env-value') as HTMLInputElement).value = value;
+      row.querySelector('.remove-row')!.addEventListener('click', () => {
+        row.remove();
+        render();
+      });
+      envEl.appendChild(row);
+    }
+
+    addArg('-y');
+    addArg('@example/weather-mcp');
+    addEnv('WEATHER_API_KEY', 'your-key-here');
+
+    function currentInput() {
+      const args = Array.from(argsEl.querySelectorAll('.arg-value')).map(
+        (el) => (el as HTMLInputElement).value
+      );
+      const env = Array.from(envEl.querySelectorAll('.env-row')).map((row) => ({
+        key: (row.querySelector('.env-key') as HTMLInputElement).value,
+        value: (row.querySelector('.env-value') as HTMLInputElement).value,
+      }));
+      return {
+        serverName: serverNameEl.value,
+        command: commandEl.value,
+        args,
+        env,
+      };
+    }
+
+    function render() {
+      const input = currentInput();
+      const issues = validateMcpManifestInput(input);
+      issuesEl.innerHTML = '';
+      for (const issue of issues) {
+        const li = document.createElement('li');
+        li.className = `issue issue-${issue.level}`;
+        li.textContent = `${issue.level === 'error' ? 'Error' : 'Warning'} (${issue.field}): ${issue.message}`;
+        issuesEl.appendChild(li);
+      }
+      const hasErrors = issues.some((i) => i.level === 'error');
+      outputCode.textContent = generateMcpManifest(input);
+      downloadBtn.disabled = hasErrors;
+    }
+
+    function download() {
+      const output = generateMcpManifest(currentInput());
+      const blob = new Blob([output], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'mcp-config.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function copy() {
+      await navigator.clipboard.writeText(generateMcpManifest(currentInput()));
+      const original = copyBtn.textContent;
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => (copyBtn.textContent = original), 1500);
+    }
+
+    addArgBtn.addEventListener('click', () => {
+      addArg('');
+      render();
+    });
+    addEnvBtn.addEventListener('click', () => {
+      addEnv('', '');
+      render();
+    });
+    document.getElementById('mcp-form')!.addEventListener('input', render);
+    downloadBtn.addEventListener('click', download);
+    copyBtn.addEventListener('click', copy);
+    render();
+  </script>
+
+  <div slot="why">
+    <h2>Why generate this instead of copy-pasting from a README</h2>
+    <p>
+      Config JSON from a README often assumes you're replacing an entire file, but most people are
+      merging one server into an existing config that already has others. Getting the nesting
+      wrong — a stray server placed outside <code>mcpServers</code>, or an <code>env</code> object
+      left as an empty <code>{}</code> — is a common cause of "my MCP server won't load" reports.
+      This tool always nests correctly and only includes <code>env</code> when you actually have
+      variables to set.
+    </p>
+  </div>
+
+  <div slot="example">
+    <h2>Worked example</h2>
+    <p>Server name <code>weather</code>, command <code>npx</code>, two args, one env var:</p>
+    <pre><code>{'{'}
+  "mcpServers": {'{'}
+    "weather": {'{'}
+      "command": "npx",
+      "args": ["-y", "@example/weather-mcp"],
+      "env": {'{'}
+        "WEATHER_API_KEY": "your-key-here"
+      {'}'}
+    {'}'}
+  {'}'}
+{'}'}</code></pre>
+  </div>
+</ToolLayout>
+
+<style>
+  .field {
+    margin-bottom: 1rem;
+  }
+  label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+  }
+  input {
+    width: 100%;
+    font-family: inherit;
+    font-size: 0.95rem;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--fg);
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.4rem;
+    margin-bottom: 0.4rem;
+  }
+  .env-row {
+    grid-template-columns: 1fr 1fr auto;
+  }
+  #mcp-add-arg,
+  #mcp-add-env {
+    margin-top: 0.3rem;
+  }
+  .issues {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0;
+  }
+  .issue {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    margin-bottom: 0.35rem;
+  }
+  .issue-error {
+    background: #ffe4e4;
+    color: #7a1717;
+  }
+  .issue-warning {
+    background: #fff4d6;
+    color: #6b5100;
+  }
+  @media (prefers-color-scheme: dark) {
+    .issue-error {
+      background: #3a1414;
+      color: #ff9d9d;
+    }
+    .issue-warning {
+      background: #3a2f0a;
+      color: #ffd875;
+    }
+  }
+  .actions {
+    display: flex;
+    gap: 0.6rem;
+    margin: 1rem 0;
+  }
+  button {
+    font: inherit;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--accent);
+    color: var(--accent-fg);
+    cursor: pointer;
+  }
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  #mcp-copy,
+  #mcp-add-arg,
+  #mcp-add-env,
+  .remove-row {
+    background: transparent;
+    color: var(--fg);
+  }
+  pre#mcp-output {
+    max-height: 320px;
+  }
+</style>

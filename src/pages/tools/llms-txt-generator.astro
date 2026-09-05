@@ -1,0 +1,349 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+
+const faqItems = [
+  {
+    question: 'What is llms.txt for?',
+    answer:
+      'llms.txt is a proposed convention (llmstxt.org) for a plain-text index at the root of a site that tells AI crawlers and assistants what the site is and where its important pages live — a sitemap written for language models instead of search engines.',
+  },
+  {
+    question: 'Where do I put the generated file?',
+    answer: 'Save it as llms.txt at the root of your domain, e.g. https://yoursite.com/llms.txt — not inside a subfolder.',
+  },
+  {
+    question: 'Do the links need to be absolute URLs?',
+    answer:
+      'Absolute URLs (with https://) are safest since some crawlers fetch llms.txt without the context of your domain to resolve relative links against.',
+  },
+  {
+    question: 'Does this replace robots.txt or sitemap.xml?',
+    answer:
+      'No — keep both. robots.txt controls crawler access and sitemap.xml lists every page for search engines; llms.txt is a curated, human-readable summary specifically for AI systems.',
+  },
+];
+---
+
+<ToolLayout
+  title="llms.txt Generator"
+  definition="llms.txt is a plain-text index file, published at your site's root, that summarizes what a site is and links to its most important pages in a format AI assistants can read directly. This tool builds a spec-correct llms.txt from a form — project name, one-line summary, and organized link sections — free and entirely in your browser."
+  metaDescription="Generate a spec-correct llms.txt file: H1 project name, summary blockquote, and organized markdown link sections for AI crawlers. Free, no signup, runs in your browser."
+  slug="llms-txt-generator"
+  faqItems={faqItems}
+  relatedSlugs={['skillmd-generator', 'agentsmd-generator', 'rules-file-generator']}
+  lastUpdated="2026-09-05"
+>
+  <form id="llms-form" novalidate>
+    <div class="field">
+      <label for="llms-project-name">Project name</label>
+      <input id="llms-project-name" type="text" value="ManifestKit" />
+    </div>
+    <div class="field">
+      <label for="llms-summary">One-sentence summary</label>
+      <input id="llms-summary" type="text" value="Free, no-signup generators for the config files AI agents read." />
+    </div>
+    <div class="field">
+      <label for="llms-details">Extra details (optional)</label>
+      <textarea id="llms-details" rows="2" placeholder="Built for developers building Claude Skills, MCP servers, and Cursor/Windsurf configs."></textarea>
+    </div>
+
+    <div id="llms-sections"></div>
+    <button type="button" id="llms-add-section">+ Add section</button>
+
+    <template id="section-template">
+      <fieldset class="section">
+        <div class="section-head">
+          <input class="section-heading" type="text" placeholder="Docs" />
+          <button type="button" class="remove-section">Remove section</button>
+        </div>
+        <div class="links"></div>
+        <button type="button" class="add-link">+ Add link</button>
+      </fieldset>
+    </template>
+
+    <template id="link-template">
+      <div class="link-row">
+        <input class="link-title" type="text" placeholder="Title" />
+        <input class="link-url" type="text" placeholder="https://example.com/page" />
+        <input class="link-desc" type="text" placeholder="Description (optional)" />
+        <button type="button" class="remove-link" aria-label="Remove link">✕</button>
+      </div>
+    </template>
+
+    <ul id="llms-issues" class="issues" aria-live="polite"></ul>
+
+    <div class="actions">
+      <button type="button" id="llms-copy">Copy</button>
+      <button type="button" id="llms-download">Download llms.txt</button>
+    </div>
+
+    <pre id="llms-output"><code></code></pre>
+  </form>
+
+  <script>
+    import { generateLlmsTxt, validateLlmsTxtInput } from '../../lib/generators/llmstxt';
+
+    const projectNameEl = document.getElementById('llms-project-name') as HTMLInputElement;
+    const summaryEl = document.getElementById('llms-summary') as HTMLInputElement;
+    const detailsEl = document.getElementById('llms-details') as HTMLTextAreaElement;
+    const sectionsEl = document.getElementById('llms-sections') as HTMLDivElement;
+    const addSectionBtn = document.getElementById('llms-add-section') as HTMLButtonElement;
+    const sectionTpl = document.getElementById('section-template') as HTMLTemplateElement;
+    const linkTpl = document.getElementById('link-template') as HTMLTemplateElement;
+    const issuesEl = document.getElementById('llms-issues') as HTMLUListElement;
+    const outputEl = document.getElementById('llms-output') as HTMLPreElement;
+    const outputCode = outputEl.querySelector('code') as HTMLElement;
+    const copyBtn = document.getElementById('llms-copy') as HTMLButtonElement;
+    const downloadBtn = document.getElementById('llms-download') as HTMLButtonElement;
+
+    function addLink(linksContainer: HTMLElement, values?: { title: string; url: string; description: string }) {
+      const node = linkTpl.content.cloneNode(true) as DocumentFragment;
+      const row = node.querySelector('.link-row') as HTMLElement;
+      if (values) {
+        (row.querySelector('.link-title') as HTMLInputElement).value = values.title;
+        (row.querySelector('.link-url') as HTMLInputElement).value = values.url;
+        (row.querySelector('.link-desc') as HTMLInputElement).value = values.description;
+      }
+      row.querySelector('.remove-link')!.addEventListener('click', () => {
+        row.remove();
+        render();
+      });
+      linksContainer.appendChild(row);
+    }
+
+    function addSection(heading?: string) {
+      const node = sectionTpl.content.cloneNode(true) as DocumentFragment;
+      const fieldset = node.querySelector('.section') as HTMLElement;
+      if (heading) {
+        (fieldset.querySelector('.section-heading') as HTMLInputElement).value = heading;
+      }
+      const linksContainer = fieldset.querySelector('.links') as HTMLElement;
+      fieldset.querySelector('.remove-section')!.addEventListener('click', () => {
+        fieldset.remove();
+        render();
+      });
+      fieldset.querySelector('.add-link')!.addEventListener('click', () => {
+        addLink(linksContainer);
+        render();
+      });
+      sectionsEl.appendChild(fieldset);
+      return linksContainer;
+    }
+
+    // Seed with one example section.
+    const firstLinks = addSection('Tools');
+    addLink(firstLinks, {
+      title: 'SKILL.md generator',
+      url: 'https://digiprofit.online/tools/skillmd-generator/',
+      description: '',
+    });
+    addLink(firstLinks, {
+      title: 'llms.txt generator',
+      url: 'https://digiprofit.online/tools/llms-txt-generator/',
+      description: 'Generate this exact file for your own site.',
+    });
+
+    function currentInput() {
+      const sections = Array.from(sectionsEl.querySelectorAll('.section')).map((section) => ({
+        heading: (section.querySelector('.section-heading') as HTMLInputElement).value,
+        links: Array.from(section.querySelectorAll('.link-row')).map((row) => ({
+          title: (row.querySelector('.link-title') as HTMLInputElement).value,
+          url: (row.querySelector('.link-url') as HTMLInputElement).value,
+          description: (row.querySelector('.link-desc') as HTMLInputElement).value || undefined,
+        })),
+      }));
+
+      return {
+        projectName: projectNameEl.value,
+        summary: summaryEl.value,
+        details: detailsEl.value || undefined,
+        sections,
+      };
+    }
+
+    function render() {
+      const input = currentInput();
+      const issues = validateLlmsTxtInput(input);
+      issuesEl.innerHTML = '';
+      for (const issue of issues) {
+        const li = document.createElement('li');
+        li.className = `issue issue-${issue.level}`;
+        li.textContent = `${issue.level === 'error' ? 'Error' : 'Warning'} (${issue.field}): ${issue.message}`;
+        issuesEl.appendChild(li);
+      }
+      const hasErrors = issues.some((i) => i.level === 'error');
+      outputCode.textContent = generateLlmsTxt(input);
+      downloadBtn.disabled = hasErrors;
+    }
+
+    function download() {
+      const output = generateLlmsTxt(currentInput());
+      const blob = new Blob([output], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'llms.txt';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function copy() {
+      await navigator.clipboard.writeText(generateLlmsTxt(currentInput()));
+      const original = copyBtn.textContent;
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => (copyBtn.textContent = original), 1500);
+    }
+
+    addSectionBtn.addEventListener('click', () => {
+      addSection();
+      render();
+    });
+    document.getElementById('llms-form')!.addEventListener('input', render);
+    downloadBtn.addEventListener('click', download);
+    copyBtn.addEventListener('click', copy);
+    render();
+  </script>
+
+  <div slot="why">
+    <h2>Why use a generator instead of writing llms.txt by hand</h2>
+    <p>
+      The spec is simple, but the failure mode is subtle: crawlers that fetch llms.txt in isolation
+      can't resolve relative links, a missing blank line before a link list breaks some markdown
+      parsers, and it's easy to forget the blockquote summary the spec expects right under the H1.
+      This tool enforces the structure so the output is valid on the first try.
+    </p>
+  </div>
+
+  <div slot="example">
+    <h2>Worked example</h2>
+    <p>
+      A project named <code>ManifestKit</code> with one "Tools" section and two links produces:
+    </p>
+    <pre><code># ManifestKit
+
+&gt; Free, no-signup generators for the config files AI agents read.
+
+## Tools
+
+- [SKILL.md generator](https://digiprofit.online/tools/skillmd-generator/)
+- [llms.txt generator](https://digiprofit.online/tools/llms-txt-generator/): Generate this exact file for your own site.</code></pre>
+  </div>
+</ToolLayout>
+
+<style>
+  .field {
+    margin-bottom: 1rem;
+  }
+  label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+  }
+  input,
+  textarea {
+    width: 100%;
+    font-family: inherit;
+    font-size: 0.95rem;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--fg);
+  }
+  textarea {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    resize: vertical;
+  }
+  fieldset.section {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.9rem;
+    margin: 0 0 1rem;
+  }
+  .section-head {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+  }
+  .section-head .section-heading {
+    flex: 1;
+    font-weight: 600;
+  }
+  .link-row {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr 1.2fr auto;
+    gap: 0.4rem;
+    margin-bottom: 0.4rem;
+  }
+  .link-row input {
+    padding: 0.4rem 0.55rem;
+    font-size: 0.88rem;
+  }
+  #llms-add-section {
+    margin-bottom: 1.2rem;
+  }
+  .issues {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0;
+  }
+  .issue {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    margin-bottom: 0.35rem;
+  }
+  .issue-error {
+    background: #ffe4e4;
+    color: #7a1717;
+  }
+  .issue-warning {
+    background: #fff4d6;
+    color: #6b5100;
+  }
+  @media (prefers-color-scheme: dark) {
+    .issue-error {
+      background: #3a1414;
+      color: #ff9d9d;
+    }
+    .issue-warning {
+      background: #3a2f0a;
+      color: #ffd875;
+    }
+  }
+  .actions {
+    display: flex;
+    gap: 0.6rem;
+    margin: 1rem 0;
+  }
+  button {
+    font: inherit;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--accent);
+    color: var(--accent-fg);
+    cursor: pointer;
+  }
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  #llms-copy,
+  #llms-add-section,
+  .add-link,
+  .remove-section,
+  .remove-link {
+    background: transparent;
+    color: var(--fg);
+  }
+  .remove-link {
+    padding: 0.4rem 0.6rem;
+  }
+  pre#llms-output {
+    max-height: 320px;
+  }
+</style>

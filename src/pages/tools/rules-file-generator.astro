@@ -1,0 +1,327 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+
+const faqItems = [
+  {
+    question: 'Cursor legacy .cursorrules vs. the newer .mdc rules — which should I use?',
+    answer:
+      'Cursor now recommends .cursor/rules/*.mdc files — they support per-file scoping via glob patterns and an "always apply" flag that a single root .cursorrules file cannot do. Use .cursorrules only if you need compatibility with an older Cursor version.',
+  },
+  {
+    question: 'What does "alwaysApply" do in a .mdc file?',
+    answer:
+      'When true, the rule is attached to every request regardless of which files are open. When false, Cursor uses the glob pattern (if set) or the description (for agent-requested rules) to decide when to pull the rule in.',
+  },
+  {
+    question: 'Does Windsurf use the same format as Cursor?',
+    answer:
+      'Windsurf reads a plain-text .windsurfrules file — the same unscoped, always-applied format as Cursor\'s legacy .cursorrules. It does not currently support Cursor\'s per-file .mdc scoping.',
+  },
+  {
+    question: 'Can I generate multiple rule files at once?',
+    answer:
+      'This tool generates one file per format per run — switch the format dropdown and download again to get the other variant from the same rule sections.',
+  },
+];
+---
+
+<ToolLayout
+  title="Cursor & Windsurf Rules Generator"
+  definition="Cursor and Windsurf both read a project-level rules file that steers how their AI edits your code — Cursor via .cursorrules or scoped .mdc files, Windsurf via .windsurfrules. This tool builds the correct format for either editor from the same rule sections, free and entirely in your browser."
+  metaDescription="Generate .cursorrules, Cursor .mdc rule files with glob scoping, or .windsurfrules — from one form. Free, no signup, runs in your browser."
+  slug="rules-file-generator"
+  faqItems={faqItems}
+  relatedSlugs={['agentsmd-generator', 'skillmd-generator', 'mcp-manifest-generator']}
+  lastUpdated="2026-09-05"
+>
+  <form id="rules-form" novalidate>
+    <div class="field">
+      <label for="rules-format">Format</label>
+      <select id="rules-format">
+        <option value="cursor-mdc" selected>Cursor — .mdc rule (recommended)</option>
+        <option value="cursor-legacy">Cursor — legacy .cursorrules</option>
+        <option value="windsurf">Windsurf — .windsurfrules</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="rules-project-name">Project name</label>
+      <input id="rules-project-name" type="text" value="ManifestKit" />
+    </div>
+
+    <div id="mdc-fields">
+      <div class="field">
+        <label for="rules-mdc-description">Description (for agent-requested attachment)</label>
+        <input id="rules-mdc-description" type="text" placeholder="TypeScript conventions" value="TypeScript conventions" />
+      </div>
+      <div class="field">
+        <label for="rules-globs">Globs (optional, comma-separated)</label>
+        <input id="rules-globs" type="text" placeholder="**/*.ts, **/*.tsx" value="**/*.ts" />
+      </div>
+      <div class="field checkbox-field">
+        <label><input id="rules-always-apply" type="checkbox" /> Always apply to every request</label>
+      </div>
+    </div>
+
+    <div id="rules-sections"></div>
+    <button type="button" id="rules-add-section">+ Add section</button>
+
+    <template id="rules-section-template">
+      <fieldset class="section">
+        <div class="section-head">
+          <input class="section-heading" type="text" placeholder="Code style" />
+          <button type="button" class="remove-section">Remove</button>
+        </div>
+        <textarea class="section-content" rows="3" placeholder="Use TypeScript strict mode everywhere."></textarea>
+      </fieldset>
+    </template>
+
+    <ul id="rules-issues" class="issues" aria-live="polite"></ul>
+
+    <div class="actions">
+      <button type="button" id="rules-copy">Copy</button>
+      <button type="button" id="rules-download">Download</button>
+    </div>
+
+    <pre id="rules-output"><code></code></pre>
+  </form>
+
+  <script>
+    import { generateRulesFile, validateRulesFileInput, type RulesFormat } from '../../lib/generators/rulesFile';
+
+    const formatEl = document.getElementById('rules-format') as HTMLSelectElement;
+    const projectNameEl = document.getElementById('rules-project-name') as HTMLInputElement;
+    const mdcFields = document.getElementById('mdc-fields') as HTMLDivElement;
+    const mdcDescriptionEl = document.getElementById('rules-mdc-description') as HTMLInputElement;
+    const globsEl = document.getElementById('rules-globs') as HTMLInputElement;
+    const alwaysApplyEl = document.getElementById('rules-always-apply') as HTMLInputElement;
+    const sectionsEl = document.getElementById('rules-sections') as HTMLDivElement;
+    const addSectionBtn = document.getElementById('rules-add-section') as HTMLButtonElement;
+    const sectionTpl = document.getElementById('rules-section-template') as HTMLTemplateElement;
+    const issuesEl = document.getElementById('rules-issues') as HTMLUListElement;
+    const outputEl = document.getElementById('rules-output') as HTMLPreElement;
+    const outputCode = outputEl.querySelector('code') as HTMLElement;
+    const copyBtn = document.getElementById('rules-copy') as HTMLButtonElement;
+    const downloadBtn = document.getElementById('rules-download') as HTMLButtonElement;
+
+    function addSection(heading?: string, content?: string) {
+      const node = sectionTpl.content.cloneNode(true) as DocumentFragment;
+      const fieldset = node.querySelector('.section') as HTMLElement;
+      if (heading) (fieldset.querySelector('.section-heading') as HTMLInputElement).value = heading;
+      if (content) (fieldset.querySelector('.section-content') as HTMLTextAreaElement).value = content;
+      fieldset.querySelector('.remove-section')!.addEventListener('click', () => {
+        fieldset.remove();
+        render();
+      });
+      sectionsEl.appendChild(fieldset);
+    }
+
+    addSection('Code style', 'Use TypeScript strict mode everywhere. Prefer named exports.');
+    addSection('Testing', 'Write a Vitest unit test for every new pure function.');
+
+    function fileNameFor(format: RulesFormat): string {
+      if (format === 'cursor-legacy') return '.cursorrules';
+      if (format === 'windsurf') return '.windsurfrules';
+      return 'rules.mdc';
+    }
+
+    function currentInput() {
+      const format = formatEl.value as RulesFormat;
+      const sections = Array.from(sectionsEl.querySelectorAll('.section')).map((section) => ({
+        heading: (section.querySelector('.section-heading') as HTMLInputElement).value,
+        content: (section.querySelector('.section-content') as HTMLTextAreaElement).value,
+      }));
+      return {
+        format,
+        projectName: projectNameEl.value,
+        sections,
+        mdcDescription: mdcDescriptionEl.value || undefined,
+        globs: globsEl.value || undefined,
+        alwaysApply: alwaysApplyEl.checked,
+      };
+    }
+
+    function render() {
+      mdcFields.hidden = formatEl.value !== 'cursor-mdc';
+
+      const input = currentInput();
+      const issues = validateRulesFileInput(input);
+      issuesEl.innerHTML = '';
+      for (const issue of issues) {
+        const li = document.createElement('li');
+        li.className = `issue issue-${issue.level}`;
+        li.textContent = `${issue.level === 'error' ? 'Error' : 'Warning'} (${issue.field}): ${issue.message}`;
+        issuesEl.appendChild(li);
+      }
+      const hasErrors = issues.some((i) => i.level === 'error');
+      outputCode.textContent = generateRulesFile(input);
+      downloadBtn.disabled = hasErrors;
+      downloadBtn.textContent = `Download ${fileNameFor(input.format)}`;
+    }
+
+    function download() {
+      const input = currentInput();
+      const output = generateRulesFile(input);
+      const blob = new Blob([output], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileNameFor(input.format);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function copy() {
+      await navigator.clipboard.writeText(generateRulesFile(currentInput()));
+      const original = copyBtn.textContent;
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => (copyBtn.textContent = original), 1500);
+    }
+
+    addSectionBtn.addEventListener('click', () => {
+      addSection();
+      render();
+    });
+    document.getElementById('rules-form')!.addEventListener('input', render);
+    downloadBtn.addEventListener('click', download);
+    copyBtn.addEventListener('click', copy);
+    render();
+  </script>
+
+  <div slot="why">
+    <h2>Why the format actually matters</h2>
+    <p>
+      Cursor's <code>.mdc</code> rules and Windsurf's <code>.windsurfrules</code> look similar but
+      parse differently — an <code>.mdc</code> file needs a YAML frontmatter block with at least
+      one of <code>alwaysApply</code>, <code>globs</code>, or <code>description</code> set, or
+      Cursor has no signal for when to use it and silently never applies it. This tool enforces
+      that before it lets you download.
+    </p>
+  </div>
+
+  <div slot="example">
+    <h2>Worked example</h2>
+    <p>Cursor <code>.mdc</code> format with a description, a glob, and one section:</p>
+    <pre><code>---
+description: TypeScript conventions
+globs: **/*.ts
+alwaysApply: false
+---
+## Code style
+
+Use TypeScript strict mode everywhere. Prefer named exports.</code></pre>
+  </div>
+</ToolLayout>
+
+<style>
+  .field {
+    margin-bottom: 1rem;
+  }
+  label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+  }
+  input,
+  textarea,
+  select {
+    width: 100%;
+    font-family: inherit;
+    font-size: 0.95rem;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--fg);
+  }
+  textarea {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    resize: vertical;
+  }
+  .checkbox-field label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: normal;
+  }
+  .checkbox-field input {
+    width: auto;
+  }
+  fieldset.section {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.9rem;
+    margin: 0 0 1rem;
+  }
+  .section-head {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+  }
+  .section-head .section-heading {
+    flex: 1;
+    font-weight: 600;
+  }
+  #rules-add-section {
+    margin-bottom: 1.2rem;
+  }
+  .issues {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0;
+  }
+  .issue {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    margin-bottom: 0.35rem;
+  }
+  .issue-error {
+    background: #ffe4e4;
+    color: #7a1717;
+  }
+  .issue-warning {
+    background: #fff4d6;
+    color: #6b5100;
+  }
+  @media (prefers-color-scheme: dark) {
+    .issue-error {
+      background: #3a1414;
+      color: #ff9d9d;
+    }
+    .issue-warning {
+      background: #3a2f0a;
+      color: #ffd875;
+    }
+  }
+  .actions {
+    display: flex;
+    gap: 0.6rem;
+    margin: 1rem 0;
+  }
+  button {
+    font: inherit;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--accent);
+    color: var(--accent-fg);
+    cursor: pointer;
+  }
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  #rules-copy,
+  #rules-add-section,
+  .remove-section {
+    background: transparent;
+    color: var(--fg);
+  }
+  pre#rules-output {
+    max-height: 320px;
+  }
+</style>
