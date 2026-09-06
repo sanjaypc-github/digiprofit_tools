@@ -5,7 +5,19 @@ export const SITE = {
   tagline: 'Free generators for the config files AI agents read.',
   author: 'The ManifestKit Team',
   gaMeasurementId: 'G-D6WBZ1F705',
+  sanity: {
+    projectId: '1ki5g9e2',
+    dataset: 'production',
+    apiVersion: '2026-09-06',
+  },
 } as const;
+
+export const CLUSTERS: Record<string, { name: string; toolSlug: string }> = {
+  'claude-skills': { name: 'Claude Skills', toolSlug: 'skillmd-generator' },
+  'mcp-servers': { name: 'MCP Servers', toolSlug: 'mcp-manifest-generator' },
+  agentsmd: { name: 'AGENTS.md', toolSlug: 'agentsmd-generator' },
+  'cursor-windsurf-rules': { name: 'Cursor & Windsurf Rules', toolSlug: 'rules-file-generator' },
+};
 
 export interface ToolMeta {
   slug: string;

@@ -18,6 +18,10 @@ correctly formatted file, download it.
 
 - [SKILL.md vs MCP Manifest vs AGENTS.md](https://digiprofit.online/guides/skillmd-vs-mcp-vs-agentsmd/): What each file is for and when to use which.
 
+## Blog
+
+- [Blog](https://digiprofit.online/blog/): Practical guides on Claude Skills, MCP servers, AGENTS.md, and Cursor/Windsurf rules.
+
 ## Optional
 
 - [About](https://digiprofit.online/about/)

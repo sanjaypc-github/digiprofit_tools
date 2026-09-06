@@ -1,0 +1,159 @@
+---
+import { toHTML } from '@portabletext/to-html';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getAllPosts } from '../../lib/sanity';
+import { CLUSTERS, SITE, TOOLS } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const posts = await getAllPosts();
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const path = `/blog/${post.slug}/`;
+const bodyHtml = toHTML(post.body as any);
+const clusterInfo = post.cluster ? CLUSTERS[post.cluster] : null;
+const relatedTool = post.relatedTool ? TOOLS.find((t) => t.slug === post.relatedTool) : null;
+const publishedDate = new Date(post.publishedAt).toISOString();
+
+const articleJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: post.title,
+  description: post.excerpt,
+  author: { '@type': 'Organization', name: SITE.author },
+  datePublished: publishedDate,
+  dateModified: publishedDate,
+};
+
+const breadcrumbJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: SITE.origin },
+    { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE.origin}/blog/` },
+    { '@type': 'ListItem', position: 3, name: post.title, item: new URL(path, SITE.origin).toString() },
+  ],
+};
+---
+
+<BaseLayout title={post.title} description={post.excerpt} path={path}>
+  <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd)} is:inline />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)} is:inline />
+
+  <article>
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Home</a> <span>/</span> <a href="/blog/">Blog</a> <span>/</span>
+      <span aria-current="page">{post.title}</span>
+    </nav>
+
+    {clusterInfo && <span class="cluster-tag">{clusterInfo.name}</span>}
+    <h1>{post.title}</h1>
+    <p class="byline">
+      {new Date(post.publishedAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })} · by {SITE.author}
+    </p>
+
+    <div class="body" set:html={bodyHtml} />
+
+    {
+      relatedTool && (
+        <aside class="tool-callout">
+          <p>
+            Put this into practice: <a href={`/tools/${relatedTool.slug}/`}>{relatedTool.title}</a>
+            {' '}— {relatedTool.blurb}
+          </p>
+        </aside>
+      )
+    }
+
+    {
+      post.relatedPosts.length > 0 && (
+        <section class="related">
+          <h2>Related posts</h2>
+          <ul>
+            {post.relatedPosts.map((rp) => (
+              <li>
+                <a href={`/blog/${rp.slug}/`}>{rp.title}</a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+  </article>
+</BaseLayout>
+
+<style>
+  .breadcrumb {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-bottom: 0.9rem;
+  }
+  .breadcrumb a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .breadcrumb a:hover {
+    color: var(--fg);
+  }
+  .breadcrumb span[aria-current] {
+    color: var(--fg);
+  }
+  .cluster-tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+  h1 {
+    margin: 0 0 0.4rem;
+  }
+  .byline {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 2rem;
+  }
+  .body {
+    max-width: 68ch;
+  }
+  .body :global(h2) {
+    margin-top: 2rem;
+  }
+  .body :global(p) {
+    margin: 1rem 0;
+  }
+  .body :global(pre) {
+    padding: 1rem;
+    overflow-x: auto;
+  }
+  .body :global(ul),
+  .body :global(ol) {
+    padding-left: 1.4rem;
+  }
+  .tool-callout {
+    margin-top: 2.5rem;
+    padding: 1.1rem 1.3rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--card-bg);
+  }
+  .tool-callout p {
+    margin: 0;
+  }
+  .related {
+    margin-top: 2rem;
+  }
+  .related ul {
+    padding-left: 1.2rem;
+  }
+</style>

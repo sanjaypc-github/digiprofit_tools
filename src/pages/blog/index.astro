@@ -1,0 +1,103 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getAllPosts } from '../../lib/sanity';
+import { CLUSTERS } from '../../lib/site';
+
+const posts = await getAllPosts();
+---
+
+<BaseLayout
+  title="Blog"
+  description="Practical guides on Claude Skills, MCP servers, AGENTS.md, and Cursor/Windsurf rules — the config files AI coding agents actually read."
+  path="/blog/"
+>
+  <section class="intro">
+    <h1>Blog</h1>
+    <p>
+      Practical guides on the config files AI coding agents read — Claude Skills, MCP servers,
+      AGENTS.md, and Cursor/Windsurf rules. Written when there's a real gap to fill, not on a
+      schedule.
+    </p>
+  </section>
+
+  {
+    posts.length === 0 && (
+      <p class="empty">No posts yet — check back soon.</p>
+    )
+  }
+
+  <section class="grid">
+    {
+      posts.map((post) => (
+        <a class="card" href={`/blog/${post.slug}/`}>
+          {post.cluster && CLUSTERS[post.cluster] && (
+            <span class="cluster-tag">{CLUSTERS[post.cluster].name}</span>
+          )}
+          <h2>{post.title}</h2>
+          <p>{post.excerpt}</p>
+          <time datetime={post.publishedAt}>
+            {new Date(post.publishedAt).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+          </time>
+        </a>
+      ))
+    }
+  </section>
+</BaseLayout>
+
+<style>
+  .intro {
+    max-width: 60ch;
+    margin-bottom: 2.5rem;
+  }
+  .intro h1 {
+    margin-bottom: 0.5rem;
+  }
+  .intro p {
+    color: var(--muted);
+  }
+  .empty {
+    color: var(--muted);
+  }
+  .grid {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .card {
+    display: block;
+    padding: 1.25rem 1.4rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--card-bg);
+    text-decoration: none;
+    color: var(--fg);
+  }
+  .card:hover {
+    border-color: var(--accent);
+  }
+  .cluster-tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+  .card h2 {
+    font-size: 1.1rem;
+    margin: 0 0 0.4rem;
+  }
+  .card p {
+    font-size: 0.92rem;
+    color: var(--muted);
+    margin: 0 0 0.6rem;
+  }
+  .card time {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+</style>
