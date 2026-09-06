@@ -17,6 +17,7 @@ export interface SanityPost {
   cluster: string | null;
   relatedTool: string | null;
   body: unknown[];
+  faq: { question: string; answer: string }[];
   publishedAt: string;
   relatedPosts: { title: string; slug: string }[];
 }
@@ -29,6 +30,7 @@ const POST_PROJECTION = `{
   cluster,
   relatedTool,
   body,
+  "faq": coalesce(faq[]{ question, answer }, []),
   publishedAt,
   "relatedPosts": coalesce(relatedPosts[]->{ title, "slug": slug.current }, [])
 }`;

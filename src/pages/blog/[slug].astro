@@ -1,6 +1,7 @@
 ---
 import { toHTML } from '@portabletext/to-html';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import Faq from '../../components/Faq.astro';
 import { getAllPosts } from '../../lib/sanity';
 import { CLUSTERS, SITE, TOOLS } from '../../lib/site';
 
@@ -72,6 +73,8 @@ const breadcrumbJsonLd = {
         </aside>
       )
     }
+
+    {post.faq.length > 0 && <Faq items={post.faq} />}
 
     {
       post.relatedPosts.length > 0 && (
