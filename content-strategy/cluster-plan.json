@@ -1,0 +1,598 @@
+{
+  "version": "2.2.5",
+  "seed_keyword": "AI agent config files (SKILL.md, AGENTS.md, MCP, Cursor/Windsurf rules)",
+  "created_at": "2026-09-06T04:42:43.401Z",
+  "pillar": {
+    "title": "AI Agent Config Files Compared: SKILL.md, AGENTS.md, CLAUDE.md, MCP & Cursor Rules",
+    "keyword": "agents.md vs claude.md vs cursorrules vs skill.md",
+    "volume": 2400,
+    "template": "ultimate-guide",
+    "wordCount": 3000,
+    "url": "/guides/skillmd-vs-mcp-vs-agentsmd/",
+    "status": "planned",
+    "note": "Existing page at this URL already covers SKILL.md/MCP/AGENTS.md. Broaden scope to add CLAUDE.md and Cursor/Windsurf rules coverage so it truly anchors all 4 clusters below, and add a table of contents + links to every spoke. Keep the URL (preserves whatever authority/backlinks it already has)."
+  },
+  "clusters": [
+    {
+      "name": "Claude Skills",
+      "color": "#4E79A7",
+      "toolLink": "/tools/skillmd-generator/",
+      "posts": [
+        {
+          "title": "Why Your Claude Skill Isn't Triggering (Fix the Description)",
+          "keyword": "claude skill not triggering",
+          "volume": 900,
+          "template": "how-to",
+          "wordCount": 1500,
+          "url": "/blog/claude-skill-not-triggering/",
+          "status": "planned",
+          "priority": 2,
+          "evidence": "8 independent articles found on this exact pain point (activation-rate framing, \"650 trials\", troubleshooting guides) — strong confirmed demand."
+        },
+        {
+          "title": "SKILL.md Frontmatter Reference: Every Field Explained",
+          "keyword": "skill.md frontmatter fields",
+          "volume": 350,
+          "template": "explainer",
+          "wordCount": 1400,
+          "url": "/blog/skillmd-frontmatter-reference/",
+          "status": "planned",
+          "priority": 7
+        },
+        {
+          "title": "Claude Skills vs Custom Instructions vs Slash Commands",
+          "keyword": "claude skills vs custom instructions",
+          "volume": 250,
+          "template": "comparison",
+          "wordCount": 1600,
+          "url": "/blog/claude-skills-vs-custom-instructions/",
+          "status": "planned",
+          "priority": 11
+        }
+      ]
+    },
+    {
+      "name": "MCP Servers",
+      "color": "#F28E2B",
+      "toolLink": "/tools/mcp-manifest-generator/",
+      "posts": [
+        {
+          "title": "MCP Server Config Not Working? Common JSON Mistakes",
+          "keyword": "mcp server config json error",
+          "volume": 700,
+          "template": "how-to",
+          "wordCount": 1500,
+          "url": "/blog/mcp-server-config-json-errors/",
+          "status": "planned",
+          "priority": 4,
+          "evidence": "Multiple setup guides across Claude Desktop/Code/Cursor confirm config-JSON friction is the most common MCP onboarding failure point."
+        },
+        {
+          "title": "Claude Desktop vs Claude Code vs Cursor: MCP Config Differences",
+          "keyword": "mcp config claude desktop vs cursor",
+          "volume": 400,
+          "template": "comparison",
+          "wordCount": 1600,
+          "url": "/blog/mcp-config-claude-desktop-vs-cursor/",
+          "status": "planned",
+          "priority": 6
+        },
+        {
+          "title": "MCP Server Security: What to Check Before You Connect One",
+          "keyword": "mcp server security risks",
+          "volume": 300,
+          "template": "explainer",
+          "wordCount": 1500,
+          "url": "/blog/mcp-server-security-checklist/",
+          "status": "planned",
+          "priority": 10
+        }
+      ]
+    },
+    {
+      "name": "AGENTS.md",
+      "color": "#E15759",
+      "toolLink": "/tools/agentsmd-generator/",
+      "posts": [
+        {
+          "title": "AGENTS.md Best Practices: What to Include (and Leave Out)",
+          "keyword": "agents.md best practices",
+          "volume": 550,
+          "template": "how-to",
+          "wordCount": 1500,
+          "url": "/blog/agentsmd-best-practices/",
+          "status": "planned",
+          "priority": 5,
+          "evidence": "Confirmed via GitHub Blog research (2,500+ repos analyzed) — real, citable data point: files >150 lines underperform."
+        },
+        {
+          "title": "Nested AGENTS.md Files for Monorepos: A Practical Guide",
+          "keyword": "nested agents.md monorepo",
+          "volume": 200,
+          "template": "how-to",
+          "wordCount": 1400,
+          "url": "/blog/nested-agentsmd-monorepo/",
+          "status": "planned",
+          "priority": 9
+        },
+        {
+          "title": "AGENTS.md vs README.md: What Goes Where",
+          "keyword": "agents.md vs readme",
+          "volume": 300,
+          "template": "explainer",
+          "wordCount": 1300,
+          "url": "/blog/agentsmd-vs-readme/",
+          "status": "planned",
+          "priority": 12
+        }
+      ]
+    },
+    {
+      "name": "Cursor & Windsurf Rules",
+      "color": "#76B7B2",
+      "toolLink": "/tools/rules-file-generator/",
+      "posts": [
+        {
+          "title": "Migrating from .cursorrules to Cursor's .mdc Rules",
+          "keyword": "migrate cursorrules to mdc",
+          "volume": 500,
+          "template": "how-to",
+          "wordCount": 1500,
+          "url": "/blog/migrate-cursorrules-to-mdc/",
+          "status": "planned",
+          "priority": 3,
+          "evidence": ".cursorrules is confirmed legacy/being deprecated — genuine, timely migration need, not evergreen filler."
+        },
+        {
+          "title": "Cursor Rules Glob Patterns Explained (With Examples)",
+          "keyword": "cursor rules glob patterns",
+          "volume": 250,
+          "template": "how-to",
+          "wordCount": 1400,
+          "url": "/blog/cursor-rules-glob-patterns/",
+          "status": "planned",
+          "priority": 8
+        },
+        {
+          "title": "Windsurf Rules vs Cursor Rules: What's Different",
+          "keyword": "windsurf rules vs cursor rules",
+          "volume": 200,
+          "template": "comparison",
+          "wordCount": 1400,
+          "url": "/blog/windsurf-vs-cursor-rules/",
+          "status": "planned",
+          "priority": 13
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "from": "pillar",
+      "to": "cluster-0-post-0",
+      "type": "mandatory",
+      "anchor": "claude skill not triggering"
+    },
+    {
+      "from": "cluster-0-post-0",
+      "to": "pillar",
+      "type": "mandatory",
+      "anchor": "agents.md vs claude.md vs cursorrules vs skill.md"
+    },
+    {
+      "from": "pillar",
+      "to": "cluster-0-post-1",
+      "type": "mandatory",
+      "anchor": "skill.md frontmatter fields"
+    },
+    {
+      "from": "cluster-0-post-1",
+      "to": "pillar",
+      "type": "mandatory",
+      "anchor": "agents.md vs claude.md vs cursorrules vs skill.md"
+    },
+    {
+      "from": "pillar",
+      "to": "cluster-0-post-2",
+      "type": "mandatory",
+      "anchor": "claude skills vs custom instructions"
+    },
+    {
+      "from": "cluster-0-post-2",
+      "to": "pillar",
+      "type": "mandatory",
+      "anchor": "agents.md vs claude.md vs cursorrules vs skill.md"
+    },
+    {
+      "from": "cluster-0-post-0",
+      "to": "cluster-0-post-1",
+      "type": "recommended",
+      "anchor": "skill.md frontmatter fields"
+    },
+    {
+      "from": "cluster-0-post-1",
+      "to": "cluster-0-post-0",
+      "type": "recommended",
+      "anchor": "claude skill not triggering"
+    },
+    {
+      "from": "cluster-0-post-0",
+      "to": "cluster-0-post-2",
+      "type": "recommended",
+      "anchor": "claude skills vs custom instructions"
+    },
+    {
+      "from": "cluster-0-post-2",
+      "to": "cluster-0-post-0",
+      "type": "recommended",
+      "anchor": "claude skill not triggering"
+    },
+    {
+      "from": "cluster-0-post-1",
+      "to": "cluster-0-post-2",
+      "type": "recommended",
+      "anchor": "claude skills vs custom instructions"
+    },
+    {
+      "from": "cluster-0-post-2",
+      "to": "cluster-0-post-1",
+      "type": "recommended",
+      "anchor": "skill.md frontmatter fields"
+    },
+    {
+      "from": "pillar",
+      "to": "cluster-1-post-0",
+      "type": "mandatory",
+      "anchor": "mcp server config json error"
+    },
+    {
+      "from": "cluster-1-post-0",
+      "to": "pillar",
+      "type": "mandatory",
+      "anchor": "agents.md vs claude.md vs cursorrules vs skill.md"
+    },
+    {
+      "from": "pillar",
+      "to": "cluster-1-post-1",
+      "type": "mandatory",
+      "anchor": "mcp config claude desktop vs cursor"
+    },
+    {
+      "from": "cluster-1-post-1",
+      "to": "pillar",
+      "type": "mandatory",
+      "anchor": "agents.md vs claude.md vs cursorrules vs skill.md"
+    },
+    {
+      "from": "pillar",
+      "to": "cluster-1-post-2",
+      "type": "mandatory",
+      "anchor": "mcp server security risks"
+    },
+    {
+      "from": "cluster-1-post-2",
+      "to": "pillar",
+      "type": "mandatory",
+      "anchor": "agents.md vs claude.md vs cursorrules vs skill.md"
+    },
+    {
+      "from": "cluster-1-post-0",
+      "to": "cluster-1-post-1",
+      "type": "recommended",
+      "anchor": "mcp config claude desktop vs cursor"
+    },
+    {
+      "from": "cluster-1-post-1",
+      "to": "cluster-1-post-0",
+      "type": "recommended",
+      "anchor": "mcp server config json error"
+    },
+    {
+      "from": "cluster-1-post-0",
+      "to": "cluster-1-post-2",
+      "type": "recommended",
+      "anchor": "mcp server security risks"
+    },
+    {
+      "from": "cluster-1-post-2",
+      "to": "cluster-1-post-0",
+      "type": "recommended",
+      "anchor": "mcp server config json error"
+    },
+    {
+      "from": "cluster-1-post-1",
+      "to": "cluster-1-post-2",
+      "type": "recommended",
+      "anchor": "mcp server security risks"
+    },
+    {
+      "from": "cluster-1-post-2",
+      "to": "cluster-1-post-1",
+      "type": "recommended",
+      "anchor": "mcp config claude desktop vs cursor"
+    },
+    {
+      "from": "pillar",
+      "to": "cluster-2-post-0",
+      "type": "mandatory",
+      "anchor": "agents.md best practices"
+    },
+    {
+      "from": "cluster-2-post-0",
+      "to": "pillar",
+      "type": "mandatory",
+      "anchor": "agents.md vs claude.md vs cursorrules vs skill.md"
+    },
+    {
+      "from": "pillar",
+      "to": "cluster-2-post-1",
+      "type": "mandatory",
+      "anchor": "nested agents.md monorepo"
+    },
+    {
+      "from": "cluster-2-post-1",
+      "to": "pillar",
+      "type": "mandatory",
+      "anchor": "agents.md vs claude.md vs cursorrules vs skill.md"
+    },
+    {
+      "from": "pillar",
+      "to": "cluster-2-post-2",
+      "type": "mandatory",
+      "anchor": "agents.md vs readme"
+    },
+    {
+      "from": "cluster-2-post-2",
+      "to": "pillar",
+      "type": "mandatory",
+      "anchor": "agents.md vs claude.md vs cursorrules vs skill.md"
+    },
+    {
+      "from": "cluster-2-post-0",
+      "to": "cluster-2-post-1",
+      "type": "recommended",
+      "anchor": "nested agents.md monorepo"
+    },
+    {
+      "from": "cluster-2-post-1",
+      "to": "cluster-2-post-0",
+      "type": "recommended",
+      "anchor": "agents.md best practices"
+    },
+    {
+      "from": "cluster-2-post-0",
+      "to": "cluster-2-post-2",
+      "type": "recommended",
+      "anchor": "agents.md vs readme"
+    },
+    {
+      "from": "cluster-2-post-2",
+      "to": "cluster-2-post-0",
+      "type": "recommended",
+      "anchor": "agents.md best practices"
+    },
+    {
+      "from": "cluster-2-post-1",
+      "to": "cluster-2-post-2",
+      "type": "recommended",
+      "anchor": "agents.md vs readme"
+    },
+    {
+      "from": "cluster-2-post-2",
+      "to": "cluster-2-post-1",
+      "type": "recommended",
+      "anchor": "nested agents.md monorepo"
+    },
+    {
+      "from": "pillar",
+      "to": "cluster-3-post-0",
+      "type": "mandatory",
+      "anchor": "migrate cursorrules to mdc"
+    },
+    {
+      "from": "cluster-3-post-0",
+      "to": "pillar",
+      "type": "mandatory",
+      "anchor": "agents.md vs claude.md vs cursorrules vs skill.md"
+    },
+    {
+      "from": "pillar",
+      "to": "cluster-3-post-1",
+      "type": "mandatory",
+      "anchor": "cursor rules glob patterns"
+    },
+    {
+      "from": "cluster-3-post-1",
+      "to": "pillar",
+      "type": "mandatory",
+      "anchor": "agents.md vs claude.md vs cursorrules vs skill.md"
+    },
+    {
+      "from": "pillar",
+      "to": "cluster-3-post-2",
+      "type": "mandatory",
+      "anchor": "windsurf rules vs cursor rules"
+    },
+    {
+      "from": "cluster-3-post-2",
+      "to": "pillar",
+      "type": "mandatory",
+      "anchor": "agents.md vs claude.md vs cursorrules vs skill.md"
+    },
+    {
+      "from": "cluster-3-post-0",
+      "to": "cluster-3-post-1",
+      "type": "recommended",
+      "anchor": "cursor rules glob patterns"
+    },
+    {
+      "from": "cluster-3-post-1",
+      "to": "cluster-3-post-0",
+      "type": "recommended",
+      "anchor": "migrate cursorrules to mdc"
+    },
+    {
+      "from": "cluster-3-post-0",
+      "to": "cluster-3-post-2",
+      "type": "recommended",
+      "anchor": "windsurf rules vs cursor rules"
+    },
+    {
+      "from": "cluster-3-post-2",
+      "to": "cluster-3-post-0",
+      "type": "recommended",
+      "anchor": "migrate cursorrules to mdc"
+    },
+    {
+      "from": "cluster-3-post-1",
+      "to": "cluster-3-post-2",
+      "type": "recommended",
+      "anchor": "windsurf rules vs cursor rules"
+    },
+    {
+      "from": "cluster-3-post-2",
+      "to": "cluster-3-post-1",
+      "type": "recommended",
+      "anchor": "cursor rules glob patterns"
+    },
+    {
+      "from": "cluster-3-post-0",
+      "to": "cluster-2-post-2",
+      "type": "optional",
+      "anchor": "AGENTS.md vs README"
+    },
+    {
+      "from": "cluster-2-post-2",
+      "to": "cluster-3-post-0",
+      "type": "optional",
+      "anchor": "migrating .cursorrules to .mdc"
+    },
+    {
+      "from": "cluster-1-post-1",
+      "to": "cluster-0-post-2",
+      "type": "optional",
+      "anchor": "Claude Skills vs custom instructions"
+    },
+    {
+      "from": "cluster-0-post-2",
+      "to": "cluster-1-post-1",
+      "type": "optional",
+      "anchor": "MCP config across Claude Desktop, Code, and Cursor"
+    }
+  ],
+  "toolLinks": [
+    {
+      "from": "cluster-0-post-0",
+      "to": "/tools/skillmd-generator/",
+      "anchor": "try the Claude Skills generator"
+    },
+    {
+      "from": "cluster-0-post-1",
+      "to": "/tools/skillmd-generator/",
+      "anchor": "try the Claude Skills generator"
+    },
+    {
+      "from": "cluster-0-post-2",
+      "to": "/tools/skillmd-generator/",
+      "anchor": "try the Claude Skills generator"
+    },
+    {
+      "from": "cluster-1-post-0",
+      "to": "/tools/mcp-manifest-generator/",
+      "anchor": "try the MCP Servers generator"
+    },
+    {
+      "from": "cluster-1-post-1",
+      "to": "/tools/mcp-manifest-generator/",
+      "anchor": "try the MCP Servers generator"
+    },
+    {
+      "from": "cluster-1-post-2",
+      "to": "/tools/mcp-manifest-generator/",
+      "anchor": "try the MCP Servers generator"
+    },
+    {
+      "from": "cluster-2-post-0",
+      "to": "/tools/agentsmd-generator/",
+      "anchor": "try the AGENTS.md generator"
+    },
+    {
+      "from": "cluster-2-post-1",
+      "to": "/tools/agentsmd-generator/",
+      "anchor": "try the AGENTS.md generator"
+    },
+    {
+      "from": "cluster-2-post-2",
+      "to": "/tools/agentsmd-generator/",
+      "anchor": "try the AGENTS.md generator"
+    },
+    {
+      "from": "cluster-3-post-0",
+      "to": "/tools/rules-file-generator/",
+      "anchor": "try the Cursor & Windsurf Rules generator"
+    },
+    {
+      "from": "cluster-3-post-1",
+      "to": "/tools/rules-file-generator/",
+      "anchor": "try the Cursor & Windsurf Rules generator"
+    },
+    {
+      "from": "cluster-3-post-2",
+      "to": "/tools/rules-file-generator/",
+      "anchor": "try the Cursor & Windsurf Rules generator"
+    },
+    {
+      "from": "pillar",
+      "to": "/tools/skillmd-generator/",
+      "anchor": "related tool"
+    },
+    {
+      "from": "pillar",
+      "to": "/tools/llms-txt-generator/",
+      "anchor": "related tool"
+    },
+    {
+      "from": "pillar",
+      "to": "/tools/agentsmd-generator/",
+      "anchor": "related tool"
+    },
+    {
+      "from": "pillar",
+      "to": "/tools/mcp-manifest-generator/",
+      "anchor": "related tool"
+    },
+    {
+      "from": "pillar",
+      "to": "/tools/rules-file-generator/",
+      "anchor": "related tool"
+    }
+  ],
+  "serp_matrix_note": "Full N*(N-1)/2 pairwise SERP overlap was not exhaustively run (would need ~40+ live searches for the full candidate set). Instead: 6 representative WebSearch queries were run to confirm real demand and surface genuine competitor framing for the highest-priority topics (skill-triggering failures, MCP config setup, AGENTS.md best practices, cursorrules deprecation, and the 3-way format comparison). Remaining topics were grouped by the skip-rule in the methodology (same head-term + same intent = assume same-cluster) using domain knowledge of the format differences. Recommend spot-checking SERP overlap on borderline pairs (flagged below) before finalizing word counts.",
+  "borderline_pairs_to_verify": [
+    [
+      "claude skill not triggering",
+      "skill.md frontmatter fields"
+    ],
+    [
+      "mcp config claude desktop vs cursor",
+      "mcp server config json error"
+    ],
+    [
+      "agents.md best practices",
+      "agents.md vs readme"
+    ]
+  ],
+  "scorecard": {
+    "coverage": 0,
+    "linkDensity": 5.3076923076923075,
+    "orphanPages": 0,
+    "cannibalization": 0,
+    "contentGaps": 0
+  },
+  "meta": {
+    "totalPosts": 13,
+    "totalClusters": 4,
+    "totalLinks": 52,
+    "estimatedWords": 20600
+  }
+}
